@@ -1,0 +1,71 @@
+﻿@page "/fetchdata"
+@using MemoryPack;
+@using TestMemoryPack.Client.Services;
+@using TestMemoryPack.Shared
+@inject HttpClient Http
+@inject IMemoryPackClient _memClient
+
+<PageTitle>Weather forecast</PageTitle>
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+<button class="btn btn-default" @onclick="GetJson">Get weather Json</button>
+
+<button class="btn btn-default" @onclick="GetMemorypack">Get weather Memorypack</button>
+
+
+Time (ms): @Elapsed
+
+
+@if (forecasts != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+
+    private long Elapsed = 0;
+    private async Task GetJson()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+
+        Http.DefaultRequestHeaders.Accept.Clear();
+        Http.DefaultRequestHeaders.Add("Accept", "application/json");
+        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        
+        watch.Stop();
+        Elapsed = watch.ElapsedMilliseconds;
+    }
+    private async Task GetMemorypack()
+    {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+
+        forecasts = await _memClient.GetAsync<WeatherForecast[]>("WeatherForecast");
+        
+        watch.Stop();
+        Elapsed = watch.ElapsedMilliseconds;
+    }
+}
